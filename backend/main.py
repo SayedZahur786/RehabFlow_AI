@@ -40,6 +40,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Middleware order matters: CORS must wrap auth so preflight works correctly
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,5 +48,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 app.include_router(health_router)
