@@ -39,7 +39,7 @@ CREATE TABLE profiles (
 -- Baseline Profiles
 CREATE TABLE baseline_profiles (
     id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id             uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id             uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE UNIQUE,
     age                 integer,
     gender              text,
     height_cm           integer,
@@ -423,3 +423,80 @@ values
 ('Lower Back Stretch', 'lower_back', 'beginner', 'Gently bend forward keeping knees slightly bent.'),
 ('Ankle Rotation', 'ankle', 'beginner', 'Rotate ankle clockwise and counterclockwise slowly.'),
 ('Neck Tilt', 'neck', 'beginner', 'Tilt head side to side gently without strain.');
+
+
+-- =============================================================
+-- AI SUPPORT EXTENSION (Injury Images + Clinical Analysis)
+-- =============================================================
+
+-- -------------------------
+-- Injury Images (Multiple per Injury)
+-- -------------------------
+
+CREATE TABLE injury_images (
+    id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    injury_assessment_id  uuid NOT NULL REFERENCES injury_assessments(id) ON DELETE CASCADE,
+    image_url             text NOT NULL,
+    ai_description        text,
+    created_at            timestamptz DEFAULT now()
+);
+
+CREATE INDEX idx_injury_images_injury_assessment_id
+    ON injury_images(injury_assessment_id);
+
+-- -------------------------
+-- AI Clinical Analysis (Versioned)
+-- -------------------------
+
+CREATE TABLE ai_clinical_analysis (
+    id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    injury_assessment_id  uuid NOT NULL REFERENCES injury_assessments(id) ON DELETE CASCADE,
+    probable_condition    text,
+    confidence_score      numeric,
+    reasoning             text,
+    model_version         text,
+    created_at            timestamptz DEFAULT now()
+);
+
+CREATE INDEX idx_ai_clinical_analysis_injury_assessment_id
+    ON ai_clinical_analysis(injury_assessment_id);
+
+-- =============================================================
+-- RLS
+-- =============================================================
+
+ALTER TABLE injury_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_clinical_analysis ENABLE ROW LEVEL SECURITY;
+
+-- -------------------------
+-- injury_images (via injury_assessments)
+-- -------------------------
+
+CREATE POLICY injury_images_select ON injury_images
+    FOR SELECT USING (
+        injury_assessment_id IN (
+            SELECT id FROM injury_assessments WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY injury_images_insert ON injury_images
+    FOR INSERT WITH CHECK (
+        injury_assessment_id IN (
+            SELECT id FROM injury_assessments WHERE user_id = auth.uid()
+        )
+    );
+
+-- -------------------------
+-- ai_clinical_analysis (via injury_assessments)
+-- -------------------------
+
+CREATE POLICY ai_clinical_analysis_select ON ai_clinical_analysis
+    FOR SELECT USING (
+        injury_assessment_id IN (
+            SELECT id FROM injury_assessments WHERE user_id = auth.uid()
+        )
+    );
+
+-- IMPORTANT:
+-- Do NOT allow client-side INSERT for ai_clinical_analysis.
+-- Only backend (service role) should insert AI results.
