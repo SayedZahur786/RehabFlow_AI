@@ -1,63 +1,119 @@
+
 # RehabFlow AI
 
-Production-grade AI-powered rehabilitation planning system using MedGemma and BLIP for clinical analysis.
+RehabFlow AI is a modern, full-stack platform for intelligent rehabilitation planning, patient assessment, and progress tracking. It leverages advanced AI models (MedGemma, Gemini) for clinical reasoning and generates personalized, phase-based rehab plans from patient images and context. The platform is designed for clinicians, therapists, and patients to streamline injury management and optimize recovery outcomes.
+
+## Features
+
+- **AI-Powered Clinical Analysis:**
+    - Upload injury images and patient context for instant clinical reasoning and diagnosis suggestions.
+    - MedGemma and Gemini models generate detailed, multi-phase rehabilitation plans.
+
+- **Markdown Rehab Plan Viewer:**
+    - Beautifully formatted, interactive rehab plans rendered in markdown for clarity and accessibility.
+
+- **Patient Assessment Wizard:**
+    - Guided, multi-step assessment flow for capturing injury details, symptoms, and baseline metrics.
+
+- **Gamification Dashboard:**
+    - Track progress, milestones, and recovery streaks with engaging visualizations.
+
+- **Secure Data Storage:**
+    - Supabase-backed database with row-level security and encrypted image storage.
+
+- **Multi-language Support:**
+    - Internationalization (i18n) for global accessibility.
+
+- **Dockerized Deployment:**
+    - Easy setup with Docker Compose for backend, frontend, and infrastructure services.
 
 ## Architecture
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 15, React, Tailwind CSS |
-| Backend | FastAPI, Python 3.11 |
-| Database | Supabase (PostgreSQL + Auth) |
-| Cache | Redis |
-| AI | Modal (BLIP image captioning + MedGemma-4B clinical reasoning) |
+| Layer         | Technology                                   |
+|--------------|----------------------------------------------|
+| Frontend     | Next.js 15, React, Tailwind CSS              |
+| Backend      | FastAPI (Python 3.11), Supabase, Redis       |
+| AI Inference | Modal (BLIP, MedGemma, Gemini)               |
+| Database     | Supabase (PostgreSQL + Auth)                 |
+| Storage      | Supabase Storage (encrypted)                 |
+| Caching      | Upstash Redis                                |
+| Auth         | Supabase Auth (JWT, JWKS)                    |
 
-## Quick Start
+## Getting Started
 
-### Prerequisites
+1. **Clone the repository:**
+     ```bash
+     git clone https://github.com/your-org/rehabflow-ai.git
+     cd rehabflow-ai
+     ```
 
-- Docker & Docker Compose
-- Modal account (for AI endpoints)
-- Supabase project
-- Node.js 20+ (for local frontend dev)
-- Python 3.11+ (for running tests)
+2. **Install dependencies:**
+     - Backend:
+         ```bash
+         cd backend
+         pip install -r requirements.txt
+         ```
+     - Frontend:
+         ```bash
+         cd frontend
+         npm install
+         ```
 
-### 1. Clone & Configure
+3. **Configure environment variables:**
+     - Copy `.env.example` to `.env` in both backend and frontend folders and fill in your keys.
 
-```bash
-git clone https://github.com/SayedZahur786/RehabFlow_AI.git
-cd RehabFlow_AI
-cp .env.example .env
+4. **Run with Docker Compose:**
+     ```bash
+     docker compose -f infrastructure/docker/docker-compose.yml up -d
+     ```
+
+5. **Access the app:**
+     - Frontend: [http://localhost:3000](http://localhost:3000)
+     - Backend API: [http://localhost:8000](http://localhost:8000)
+
+## Folder Structure
+
+```
+RehabFlow_AI/
+├── backend/              # FastAPI backend
+│   ├── core/             # Config, auth, logging
+│   ├── routes/           # API route handlers
+│   └── services/         # Business logic (AI, Supabase)
+├── frontend/             # Next.js 15 frontend
+│   └── app/[locale]/     # i18n pages (dashboard, assessment, rehab-plan)
+├── modal/                # Modal AI endpoints
+│   └── endpoints/        # BLIP + MedGemma pipeline
+├── infrastructure/       # Docker configs
+│   └── docker/           # Dockerfiles + docker-compose.yml
+└── tests/                # Pytest test suite
 ```
 
-Fill in all required environment variables in `.env`.
+## Future Features
 
-### 2. Deploy the Modal AI Endpoint
+- **Day-by-Day Rehab Plan Generation:**
+    - Use Gemini to generate granular, daily exercise and diet plans with markdown formatting.
+- **Patient Progress Analytics:**
+    - Visualize recovery trends, adherence, and outcome predictions.
+- **Automated Follow-Up Reminders:**
+    - Notify patients and clinicians of key milestones and check-ins.
+- **Custom Exercise Library:**
+    - Expand database with video demos, instructions, and AI-generated exercise suggestions.
+- **Voice/Chat AI Assistant:**
+    - Conversational interface for plan queries, feedback, and support.
+- **Mobile App Integration:**
+    - Native iOS/Android apps for on-the-go access and notifications.
+- **FHIR/EHR Integration:**
+    - Connect with electronic health records for seamless data exchange.
+- **Advanced Security & Compliance:**
+    - HIPAA/GDPR-ready features, audit logs, and encrypted backups.
 
-```bash
-pip install modal
-modal setup          # One-time auth
-modal deploy modal/endpoints/medgemma_endpoint.py
-```
+## License
 
-Copy the **analyze** endpoint URL (not the caption URL) to `MEDGEMMA_ENDPOINT` in `.env`.
+MIT License. See LICENSE file for details.
 
-### 3. Run with Docker
+---
 
-```bash
-docker compose -f infrastructure/docker/docker-compose.yml up --build
-```
-
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend | http://localhost:8000 |
-| Health Check | http://localhost:8000/health |
-
-### 4. Use the App
-
-1. Sign up / Log in at http://localhost:3000
-2. Complete the injury assessment (5 steps)
+For questions, feedback, or contributions, open an issue or contact the maintainers.
 3. View your dashboard and click **"Analyze with AI"**
 4. View the full rehabilitation plan
 
